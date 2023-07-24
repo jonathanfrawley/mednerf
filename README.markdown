@@ -14,6 +14,12 @@ An <em>instance</em> comprehends 72 DRRs (each at 5 degrees) from a 360 degree r
 
 `knee_xrays` all images of the 5 knee instances (.png, res. 128x128)
 
+## Get the weights
+You can download our models' weights through the following links:
+
+[Knee model](https://drive.google.com/file/d/17cznfl6OSV4p2rzjKJXRJ_cmOM7z2tiP/view?usp=sharing)
+[Chest model](https://drive.google.com/file/d/13NpwA3TiogPHYBeuvI5QapfghdPio3SF/view?usp=sharing)
+
 ## Train a model
 Refer to graf-main folder and execute, replacing CONFIG.yaml with knee.yaml or chest.yaml
 ```
