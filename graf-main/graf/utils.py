@@ -12,6 +12,7 @@ class  ImageFolder(Dataset):
     """docstring for ArtDataset"""
     def __init__(self, root, transform=None):
         super( ImageFolder, self).__init__()
+        assert os.path.exists(root), f"Error: {root} not found!"
         self.root = root
 
         self.frame = self._parse_frame()
