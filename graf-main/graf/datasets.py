@@ -91,3 +91,46 @@ class CelebAHQ(ImageDataset):
             img = self.transform(img)
         
         return img
+
+class AngioDataset(VisionDataset):
+    """
+    Load images from multiple data directories.
+    Folder structure: data_dir/filename.png
+    """
+
+    def __init__(self, data_dirs, fps, transforms=None):
+        # Use multiple root folders
+        if not isinstance(data_dirs, list):
+            data_dirs = [data_dirs]
+
+        # initialize base class
+        super(ImageDataset, self).__init__(root=data_dirs, transform=transforms)
+
+        self.fps = 15  # Add FPS rate
+        self.filenames = []
+        self.times = []
+        self.root = data_dirs
+        frame_count = 0
+
+        for ddir in self.root:
+            filenames = self._get_files(ddir)
+            num_frames = len(filenames)
+            timestamps = np.linspace(frame_count / self.fps, (frame_count + num_frames - 1) / self.fps, num_frames).astype(np.float32)
+            self.filenames.extend(filenames)
+            self.times.extend(timestamps)
+            frame_count += num_frames
+
+    def __len__(self):
+        return len(self.filenames)
+
+    @staticmethod
+    def _get_files(root_dir):
+        return glob.glob(f'{root_dir}/*.png') + glob.glob(f'{root_dir}/*.jpg')
+
+    def __getitem__(self, idx):
+        filename = self.filenames[idx]
+        img = Image.open(filename).convert('RGB')
+        if self.transform is not None:
+            img = self.transform(img)
+        time = self.times[idx]
+        return img, time

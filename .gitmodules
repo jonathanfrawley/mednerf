@@ -1,3 +1,6 @@
 [submodule "pixel-nerf"]
 	path = pixel-nerf
 	url = https://github.com/jonathanfrawley/pixel-nerf
+[submodule "/Users/jaykshirsagar/Masters/MASc/DyMedNerf/mednerf/graf-main/submodules/Dnerf"]
+	path = /Users/jaykshirsagar/Masters/MASc/DyMedNerf/mednerf/graf-main/submodules/Dnerf
+	url = https://github.com/albertpumarola/D-NeRF.git

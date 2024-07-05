@@ -70,7 +70,7 @@ if __name__ == '__main__':
     device = torch.device("cuda:0")
 
     # Dataset
-    train_dataset, hwfr, render_poses = get_data(config)
+    train_dataset, hwfr, render_poses, times, render_times = get_data(config)
     # in case of orthographic projection replace focal length by far-near
     if config['data']['orthographic']:
         hw_ortho = (config['data']['far']-config['data']['near'], config['data']['far']-config['data']['near'])
