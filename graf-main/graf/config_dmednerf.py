@@ -56,6 +56,7 @@ def get_data(config):
     }
 
     dset = None
+    
     if dset_type == 'carla':
         dset = Carla(**kwargs)
 
@@ -81,6 +82,12 @@ def get_data(config):
   
     elif dset_type == 'cub':
         dset = CUB(**kwargs)
+    
+    elif dset_type == 'angio':
+        fps = config['data'].get('fps', 15)  # Get fps from config or use default
+        kwargs['fps'] = fps
+        dset = AngioDataset(**kwargs)
+
     dset.H = dset.W = imsize
     dset.focal = W/2 * 1 / np.tan((.5 * fov * np.pi/180.))
     radius = config['data']['radius']
@@ -90,10 +97,9 @@ def get_data(config):
         render_radius = max(radius)
     dset.radius = radius
 
-    imgs = dset.images
+    imgs = [item[0] for item in dset]
     poses = dset.poses
-    times = np.linspace(0, 1, len(imgs))  # Assuming linear time distribution
-
+    times = dset.times
     H, W = imsize, imsize
     focal = W/2 * 1 / np.tan(.5 * fov * np.pi/180.)
 

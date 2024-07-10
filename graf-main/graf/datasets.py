@@ -106,19 +106,18 @@ class AngioDataset(VisionDataset):
         # initialize base class
         super(ImageDataset, self).__init__(root=data_dirs, transform=transforms)
 
-        self.fps = 15  # Add FPS rate
+        self.fps = fps  # Use fps from the constructor
         self.filenames = []
         self.times = []
         self.root = data_dirs
-        frame_count = 0
 
         for ddir in self.root:
             filenames = self._get_files(ddir)
             num_frames = len(filenames)
-            timestamps = np.linspace(frame_count / self.fps, (frame_count + num_frames - 1) / self.fps, num_frames).astype(np.float32)
+            # Calculate timestamps independently for each directory
+            timestamps = np.linspace(0, (num_frames - 1) / self.fps, num_frames).astype(np.float32)
             self.filenames.extend(filenames)
             self.times.extend(timestamps)
-            frame_count += num_frames
 
     def __len__(self):
         return len(self.filenames)
