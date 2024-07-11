@@ -3,6 +3,7 @@ torch.autograd.set_detect_anomaly(True)
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
+from functools import partial
 from torchsearchsorted import searchsorted
 
 
@@ -10,6 +11,7 @@ from torchsearchsorted import searchsorted
 img2mse = lambda x, y : torch.mean((x - y) ** 2)
 mse2psnr = lambda x : -10. * torch.log(x) / torch.log(torch.Tensor([10.]))
 to8b = lambda x : (255*np.clip(x,0,1)).astype(np.uint8)
+relu = partial(F.relu, inplace=True)  # saves a lot of memory
 
 
 # Positional encoding (section 5.1)
@@ -46,7 +48,7 @@ class Embedder:
         return torch.cat([fn(inputs) for fn in self.embed_fns], -1)
 
 
-def get_embedder(multires, input_dims, i=0):
+def get_embedder(multires, input_dims=3, i=0):
     if i == -1:
         return nn.Identity(), input_dims
     
@@ -150,10 +152,6 @@ class NeRFOriginal(nn.Module):
         self.skips = skips
         self.use_viewdirs = use_viewdirs
 
-        # self.pts_linears = nn.ModuleList(
-        #     [nn.Linear(input_ch, W)] +
-        #     [nn.Linear(W, W) if i not in self.skips else nn.Linear(W + input_ch, W) for i in range(D-1)])
-
         layers = [nn.Linear(input_ch, W)]
         for i in range(D - 1):
             if i in memory:
@@ -188,7 +186,7 @@ class NeRFOriginal(nn.Module):
         h = input_pts
         for i, l in enumerate(self.pts_linears):
             h = self.pts_linears[i](h)
-            h = F.relu(h)
+            h = relu(h)
             if i in self.skips:
                 h = torch.cat([input_pts, h], -1)
 
@@ -199,7 +197,7 @@ class NeRFOriginal(nn.Module):
 
             for i, l in enumerate(self.views_linears):
                 h = self.views_linears[i](h)
-                h = F.relu(h)
+                h = relu(h)
 
             rgb = self.rgb_linear(h)
             outputs = torch.cat([rgb, alpha], -1)
@@ -298,6 +296,31 @@ def ndc_rays(H, W, focal, near, rays_o, rays_d):
     rays_o = torch.stack([o0,o1,o2], -1)
     rays_d = torch.stack([d0,d1,d2], -1)
     
+    return rays_o, rays_d
+
+
+def get_rays_ortho(H, W, c2w, size_h, size_w):
+    """Similar structure to 'get_rays' in submodules/nerf_pytorch/run_nerf_helpers.py"""
+    # # Rotate ray directions from camera frame to the world frame
+    rays_d = -c2w[:3, 2].view(1, 1, 3).expand(W, H, -1)  # direction to center in world coordinates
+
+    i, j = torch.meshgrid(torch.linspace(0, W - 1, W),
+                          torch.linspace(0, H - 1, H))  # pytorch's meshgrid has indexing='ij'
+    i = i.t()
+    j = j.t()
+
+    # Translation from center for origins
+    rays_o = torch.stack([(i - W * .5), -(j - H * .5), torch.zeros_like(i)], -1)
+
+    # Normalize to [-size_h/2, -size_w/2]
+    rays_o = rays_o * torch.tensor([size_w / W, size_h / H, 1]).view(1, 1, 3)
+
+    # Rotate origins to the world frame
+    rays_o = torch.sum(rays_o[..., None, :] * c2w[:3, :3], -1)  # dot product, equals to: [c2w.dot(dir) for dir in dirs]
+
+    # Translate origins to the world frame
+    rays_o = rays_o + c2w[:3, -1].view(1, 1, 3)
+
     return rays_o, rays_d
 
 

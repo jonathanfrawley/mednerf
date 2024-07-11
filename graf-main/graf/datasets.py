@@ -131,5 +131,7 @@ class AngioDataset(VisionDataset):
         img = Image.open(filename).convert('RGB')
         if self.transform is not None:
             img = self.transform(img)
-        time = self.times[idx]
-        return img, time
+        return img
+    
+    def get_time(self, idx):
+        return self.times[idx]

@@ -3,7 +3,7 @@ import torch
 from ..utils import sample_on_sphere, look_at, to_sphere
 from ..transforms import FullRaySampler
 # from submodules.nerf_pytorch.run_nerf_mod import render, run_network            # import conditional render
-from submodules.Dnerf.run_dnerf import render, run_network
+from submodules.dnerf.run_dnerf import render, run_network
 from functools import partial
 
 

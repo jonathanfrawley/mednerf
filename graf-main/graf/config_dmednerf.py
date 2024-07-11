@@ -97,8 +97,8 @@ def get_data(config):
         render_radius = max(radius)
     dset.radius = radius
 
-    imgs = [item[0] for item in dset]
-    poses = dset.poses
+    # imgs = [item[0] for item in dset]
+    # poses = dset.poses
     times = dset.times
     H, W = imsize, imsize
     focal = W/2 * 1 / np.tan(.5 * fov * np.pi/180.)
@@ -108,18 +108,14 @@ def get_data(config):
     theta = 0.5 * (to_theta(config['data']['vmin']) + to_theta(config['data']['vmax']))
     angle_range = (to_phi(config['data']['umin']), to_phi(config['data']['umax']))
     render_poses = get_render_poses(render_radius, angle_range=angle_range, theta=theta, N=N)
-    render_times = torch.linspace(0., 1., render_poses.shape[0])
+    # render_times = torch.linspace(0., 1., render_poses.shape[0])
 
     # Assuming i_split is not needed for this implementation
-    i_split = [np.arange(len(imgs)), np.array([]), np.array([])]  # [train, val, test]
+    # i_split = [np.arange(len(imgs)), np.array([]), np.array([])]  # [train, val, test]
 
     print('Loaded {}'.format(dset_type), imsize, len(dset), render_poses.shape, [H,W,focal,dset.radius], config['data']['datadir'])
     
-    # Return both the original format and the new format
-    original_return = dset, [H,W,dset.focal,dset.radius], render_poses, times, render_times
-    # blender_style_return = imgs, poses, times, render_poses, render_times, [H, W, focal], i_split
-    
-    return original_return
+    return dset, [H, W, focal, dset.radius], render_poses, times
 
 
 def get_render_poses(radius, angle_range=(0, 360), theta=0, N=40, swap_angles=False):
@@ -142,7 +138,7 @@ def get_render_poses(radius, angle_range=(0, 360), theta=0, N=40, swap_angles=Fa
 def build_models(config, disc=True):
     from argparse import Namespace
     # from submodules.nerf_pytorch.run_nerf_mod import create_nerf
-    from submodules.Dnerf.run_dnerf import create_nerf
+    from submodules.dnerf.run_dnerf import create_nerf
     from .models.dnerf_generator import Generator
     from .models.discriminator import Discriminator
 
